@@ -14,6 +14,3 @@ Thumbs.db
 
 # Streamlit
 .streamlit/
-
-# Saved models (optional but recommended)
-models/saved_models/*.pkl

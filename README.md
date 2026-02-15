@@ -1,66 +1,116 @@
-# Machine Learning Assignment 2 – Breast Cancer Classification
+# Comparative Analysis of Machine Learning Algorithms for Breast Cancer Classification
 
-## a. Problem Statement
+## 1. Executive Summary
 
-The objective of this project is to develop and evaluate multiple machine learning classification models to predict whether a breast tumor is malignant or benign based on diagnostic features. The project also includes deploying the trained models through an interactive Streamlit web application to demonstrate an end-to-end machine learning workflow including modeling, evaluation, and deployment.
+The objective of this project is to design, implement, and evaluate a
+machine learning framework for the classification of breast tumors as
+Malignant or Benign using the Breast Cancer Wisconsin Diagnostic
+dataset.
 
----
+Six supervised machine learning models were trained and evaluated using
+standardized preprocessing techniques. The final deliverable includes a
+deployed Streamlit web application that enables dataset upload, model
+selection, performance evaluation, and downloadable predictions.
 
-## b. Dataset Description
+------------------------------------------------------------------------
 
-The dataset used in this project is the Breast Cancer Wisconsin (Diagnostic) dataset, sourced from the UCI Machine Learning Repository via Kaggle.
+## 2. Dataset Methodology
 
-- Number of instances: 569  
-- Number of features: 30 numerical features  
-- Target variable: `diagnosis`  
-  - `M` → Malignant  
-  - `B` → Benign  
+Source: Breast Cancer Wisconsin Diagnostic Dataset\
+Problem Type: Binary Classification\
+Target Variable: diagnosis (0 = Benign, 1 = Malignant)
 
-The dataset contains features computed from digitized images of fine needle aspirate (FNA) of breast masses. These features describe characteristics such as radius, texture, perimeter, area, smoothness, compactness, concavity, symmetry, and fractal dimension.
+### Dataset Characteristics
 
-Data preprocessing steps included removal of non-informative columns, label encoding of the target variable, stratified train-test split, and feature scaling where required.
+-   Total Samples: 569\
+-   Total Features: 30 numerical features\
+-   Target Classes: Malignant and Benign
 
----
+### Preprocessing Steps
 
-## c. Models Used and Evaluation Metrics
+-   Removed unnecessary identifier columns\
+-   Encoded target labels (M=1, B=0)\
+-   Applied StandardScaler for feature scaling\
+-   Used Stratified 80/20 Train-Test Split
 
-The following six classification models were implemented and evaluated on the same dataset:
+------------------------------------------------------------------------
 
-1. Logistic Regression  
-2. Decision Tree Classifier  
-3. K-Nearest Neighbors (KNN)  
-4. Naive Bayes (Gaussian)  
-5. Random Forest (Ensemble)  
-6. XGBoost (Ensemble)  
+## 3. Experimental Results
 
-The evaluation metrics used were:
-- Accuracy  
-- AUC Score  
-- Precision  
-- Recall  
-- F1 Score  
-- Matthews Correlation Coefficient (MCC)
+  Model                 Accuracy   Precision   ROC-AUC
+  --------------------- ---------- ----------- ---------
+  Logistic Regression   0.9825     0.9762      0.9970
+  Decision Tree         0.9298     0.9048      0.9246
+  K-Nearest Neighbors   0.9561     0.9383      0.9830
+  Naive Bayes           0.9211     0.8966      0.9878
+  Random Forest         0.9737     0.9630      0.9929
+  XGBoost               0.9737     0.9630      0.9940
 
-### Model Comparison Table
+------------------------------------------------------------------------
 
-| ML Model | Accuracy | AUC | Precision | Recall | F1 Score | MCC |
-|--------|----------|------|-----------|--------|----------|------|
-| Logistic Regression | 0.9649 | 0.9960 | 0.9750 | 0.9286 | 0.9512 | 0.9245 |
-| Decision Tree | 0.9298 | 0.9246 | 0.9048 | 0.9048 | 0.9048 | 0.8492 |
-| K-Nearest Neighbors | 0.9561 | 0.9823 | 0.9744 | 0.9048 | 0.9383 | 0.9058 |
-| Naive Bayes | 0.9211 | 0.9891 | 0.9231 | 0.8571 | 0.8889 | 0.8292 |
-| Random Forest (Ensemble) | 0.9737 | 0.9929 | 1.0000 | 0.9286 | 0.9630 | 0.9442 |
-| XGBoost (Ensemble) | 0.9737 | 0.9940 | 1.0000 | 0.9286 | 0.9630 | 0.9442 |
+## 4. Analysis and Observations
 
----
+-   Logistic Regression achieved the highest overall performance with
+    98.25% accuracy and ROC-AUC of 0.9970.
+-   Decision Tree showed comparatively lower performance and potential
+    overfitting.
+-   KNN performed strongly after feature scaling, confirming meaningful
+    feature distance relationships.
+-   Naive Bayes achieved high ROC-AUC despite slightly lower precision.
+-   Random Forest and XGBoost demonstrated strong ensemble performance
+    with ROC-AUC above 0.99.
+-   Logistic Regression emerged as the best-performing model overall.
 
-## d. Observations on Model Performance
+------------------------------------------------------------------------
 
-| ML Model | Observation |
-|--------|-------------|
-| Logistic Regression | Demonstrated strong baseline performance with high accuracy and excellent AUC, indicating good linear separability of the dataset. |
-| Decision Tree | Provided interpretable results but showed lower performance due to overfitting compared to ensemble methods. |
-| K-Nearest Neighbors | Achieved high accuracy after feature scaling, showing effective use of distance-based classification. |
-| Naive Bayes | Performed reasonably well with high AUC, though its independence assumption slightly reduced accuracy and recall. |
-| Random Forest (Ensemble) | Delivered one of the best performances with perfect precision and high MCC, benefiting from ensemble averaging. |
-| XGBoost (Ensemble) | Achieved the strongest overall performance, combining high accuracy, AUC, and MCC, demonstrating robustness and generalization ability. |
+## 5. Streamlit Application Features
+
+-   CSV test dataset upload\
+-   Model selection dropdown\
+-   ROC curve visualization\
+-   Confusion matrix visualization\
+-   Performance comparison across models\
+-   Download predictions as CSV
+
+------------------------------------------------------------------------
+
+## 6. Project Architecture
+
+├── app.py\
+├── models/\
+│ ├── train_models.py\
+│ ├── utils.py\
+│ └── saved_models/\
+├── requirements.txt\
+├── README.md\
+└── .gitignore
+
+------------------------------------------------------------------------
+
+## 7. Installation & Execution
+
+1.  Clone Repository: git clone `https://ml-assignment2-binary-classification.streamlit.app`{=html}
+
+2.  Install Dependencies: pip install -r requirements.txt
+
+3.  Run Application: streamlit run app.py
+
+Application runs at: http://localhost:8501
+
+------------------------------------------------------------------------
+
+## 8. Deployment
+
+Platform: Streamlit Community Cloud  
+Entry File: app.py  
+
+Live Application Link:  
+https://ml-assignment2-binary-classification.streamlit.app
+------------------------------------------------------------------------
+
+## 9. Conclusion
+
+This project demonstrates a complete machine learning workflow including
+preprocessing, training, evaluation, comparison, and deployment.
+Logistic Regression provided the best overall classification performance
+for this dataset.
