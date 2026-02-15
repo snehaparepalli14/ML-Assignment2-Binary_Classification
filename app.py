@@ -26,7 +26,30 @@ from sklearn.metrics import (
 st.set_page_config(page_title="Breast Cancer Classification", layout="wide")
 
 st.title("Breast Cancer Classification – ML Models")
-st.write("Upload test data, select a trained model, and evaluate performance.")
+
+st.write("Step 1: Download the ready test dataset below.")
+st.write("Step 2: Upload the same CSV file to evaluate model performance.")
+
+# -----------------------------
+# Download Ready Test Dataset
+# -----------------------------
+
+TEST_DATA_PATH = "breast_cancer_test.csv"
+
+if os.path.exists(TEST_DATA_PATH):
+    ready_df = pd.read_csv(TEST_DATA_PATH)
+    ready_csv = ready_df.to_csv(index=False).encode("utf-8")
+
+    st.download_button(
+        label="⬇ Download Ready Test Dataset",
+        data=ready_csv,
+        file_name="breast_cancer_test.csv",
+        mime="text/csv"
+    )
+else:
+    st.warning("Test dataset file not found in repository.")
+
+st.divider()
 
 # -----------------------------
 # Model Configuration
@@ -62,26 +85,9 @@ if uploaded_file is not None:
     st.subheader("Dataset Preview")
     st.dataframe(df.head())
 
-    st.write("Total Uploaded Rows:", df.shape[0])
-
-    # -----------------------------
-    # Download Uploaded Test Dataset
-    # -----------------------------
-
-    uploaded_csv = df.to_csv(index=False).encode("utf-8")
-
-    st.download_button(
-        label="⬇ Download Uploaded Test Dataset",
-        data=uploaded_csv,
-        file_name="uploaded_test_dataset.csv",
-        mime="text/csv"
-    )
-
     # -----------------------------
     # Preprocessing
     # -----------------------------
-
-    df_original = df.copy()
 
     if "id" in df.columns:
         df.drop(columns=["id"], inplace=True)
@@ -103,7 +109,7 @@ if uploaded_file is not None:
     X_scaled = scaler.fit_transform(X)
 
     # -----------------------------
-    # Load Selected Model
+    # Load Model
     # -----------------------------
 
     model_path = os.path.join(MODEL_DIR, MODEL_FILES[selected_model_name])
@@ -115,25 +121,6 @@ if uploaded_file is not None:
 
     y_pred = model.predict(X_scaled)
     y_prob = model.predict_proba(X_scaled)[:, 1]
-
-    # -----------------------------
-    # Download Predictions
-    # -----------------------------
-
-    results_df = df_original.copy()
-    results_df["Predicted"] = y_pred
-    results_df["Prediction_Probability"] = y_prob
-
-    st.write("Download Rows:", results_df.shape[0])
-
-    csv = results_df.to_csv(index=False).encode("utf-8")
-
-    st.download_button(
-        label="⬇ Download Predictions CSV",
-        data=csv,
-        file_name="model_predictions.csv",
-        mime="text/csv"
-    )
 
     # -----------------------------
     # Evaluation Metrics
@@ -171,9 +158,6 @@ if uploaded_file is not None:
         ax=ax
     )
 
-    ax.set_xlabel("Predicted Label")
-    ax.set_ylabel("True Label")
-
     st.pyplot(fig)
 
     # -----------------------------
@@ -188,8 +172,6 @@ if uploaded_file is not None:
     fig2, ax2 = plt.subplots()
     ax2.plot(fpr, tpr, label=f"AUC = {roc_auc:.3f}")
     ax2.plot([0, 1], [0, 1], linestyle="--")
-    ax2.set_xlabel("False Positive Rate")
-    ax2.set_ylabel("True Positive Rate")
     ax2.legend()
 
     st.pyplot(fig2)
@@ -205,10 +187,7 @@ if uploaded_file is not None:
         comparison_results = {}
 
         for name, file in MODEL_FILES.items():
-
-            model_path = os.path.join(MODEL_DIR, file)
-            model = joblib.load(model_path)
-
+            model = joblib.load(os.path.join(MODEL_DIR, file))
             preds = model.predict(X_scaled)
             probs = model.predict_proba(X_scaled)[:, 1]
 
@@ -219,24 +198,7 @@ if uploaded_file is not None:
             }
 
         comparison_df = pd.DataFrame(comparison_results).T
-
         st.dataframe(comparison_df)
 
-        fig3, ax3 = plt.subplots()
-        comparison_df["AUC"].plot(kind="bar", ax=ax3)
-        ax3.set_ylabel("AUC Score")
-        ax3.set_title("AUC Comparison Across Models")
-        plt.xticks(rotation=45)
-
-        st.pyplot(fig3)
-
-        st.markdown("""
-        **Observations:**
-        - Ensemble models generally demonstrate stronger AUC performance.
-        - Logistic Regression provides stable and interpretable baseline results.
-        - Higher AUC indicates better class separation ability.
-        - In medical diagnosis, minimizing false negatives (high recall) is critical.
-        """)
-
 else:
-    st.info("Please upload a CSV test dataset to begin.")
+    st.info("Please download and upload the test dataset to begin evaluation.")
