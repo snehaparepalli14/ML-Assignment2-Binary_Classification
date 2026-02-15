@@ -24,7 +24,6 @@ from sklearn.metrics import (
 # -----------------------------
 
 st.set_page_config(page_title="Breast Cancer Classification", layout="wide")
-
 st.title("Breast Cancer Classification – ML Models")
 
 st.write("Step 1: Download the ready test dataset below.")
@@ -34,7 +33,7 @@ st.write("Step 2: Upload the same CSV file to evaluate model performance.")
 # Download Ready Test Dataset
 # -----------------------------
 
-TEST_DATA_PATH = "breast_cancer_test.csv"
+TEST_DATA_PATH = "data/data.csv"   # ✅ FIXED PATH
 
 if os.path.exists(TEST_DATA_PATH):
     ready_df = pd.read_csv(TEST_DATA_PATH)
@@ -113,6 +112,11 @@ if uploaded_file is not None:
     # -----------------------------
 
     model_path = os.path.join(MODEL_DIR, MODEL_FILES[selected_model_name])
+
+    if not os.path.exists(model_path):
+        st.error("Selected model file not found.")
+        st.stop()
+
     model = joblib.load(model_path)
 
     # -----------------------------
@@ -120,7 +124,11 @@ if uploaded_file is not None:
     # -----------------------------
 
     y_pred = model.predict(X_scaled)
-    y_prob = model.predict_proba(X_scaled)[:, 1]
+
+    if hasattr(model, "predict_proba"):
+        y_prob = model.predict_proba(X_scaled)[:, 1]
+    else:
+        y_prob = y_pred
 
     # -----------------------------
     # Evaluation Metrics
@@ -187,14 +195,25 @@ if uploaded_file is not None:
         comparison_results = {}
 
         for name, file in MODEL_FILES.items():
-            model = joblib.load(os.path.join(MODEL_DIR, file))
+
+            model_path = os.path.join(MODEL_DIR, file)
+
+            if not os.path.exists(model_path):
+                continue
+
+            model = joblib.load(model_path)
+
             preds = model.predict(X_scaled)
-            probs = model.predict_proba(X_scaled)[:, 1]
+
+            if hasattr(model, "predict_proba"):
+                probs = model.predict_proba(X_scaled)[:, 1]
+            else:
+                probs = preds
 
             comparison_results[name] = {
-                "Accuracy": accuracy_score(y, preds),
-                "F1 Score": f1_score(y, preds),
-                "AUC": roc_auc_score(y, probs)
+                "Accuracy": round(accuracy_score(y, preds), 4),
+                "F1 Score": round(f1_score(y, preds), 4),
+                "AUC": round(roc_auc_score(y, probs), 4)
             }
 
         comparison_df = pd.DataFrame(comparison_results).T
