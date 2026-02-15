@@ -19,18 +19,72 @@ from sklearn.metrics import (
     auc
 )
 
-
+# -----------------------------
 # App Configuration
-
+# -----------------------------
 
 st.set_page_config(page_title="Breast Cancer Classification", layout="wide")
 
 st.title("Breast Cancer Classification – ML Models")
 st.write("Upload test data, select a trained model, and evaluate performance.")
 
+# -----------------------------
+# Sample Test Dataset Download
+# -----------------------------
 
+st.subheader("Download Sample Test Dataset")
+
+def create_sample_test_data():
+    sample_data = {
+        "radius_mean": [17.99, 13.71],
+        "texture_mean": [10.38, 20.83],
+        "perimeter_mean": [122.8, 90.2],
+        "area_mean": [1001, 577.9],
+        "smoothness_mean": [0.1184, 0.1189],
+        "compactness_mean": [0.2776, 0.1645],
+        "concavity_mean": [0.3001, 0.09366],
+        "concave_points_mean": [0.1471, 0.05985],
+        "symmetry_mean": [0.2419, 0.2196],
+        "fractal_dimension_mean": [0.07871, 0.07451],
+        "radius_se": [1.095, 0.5835],
+        "texture_se": [0.9053, 1.377],
+        "perimeter_se": [8.589, 3.856],
+        "area_se": [153.4, 50.96],
+        "smoothness_se": [0.006399, 0.008805],
+        "compactness_se": [0.04904, 0.03029],
+        "concavity_se": [0.05373, 0.02488],
+        "concave_points_se": [0.01587, 0.01448],
+        "symmetry_se": [0.03003, 0.01486],
+        "fractal_dimension_se": [0.006193, 0.005412],
+        "radius_worst": [25.38, 17.06],
+        "texture_worst": [17.33, 28.14],
+        "perimeter_worst": [184.6, 110.6],
+        "area_worst": [2019, 897],
+        "smoothness_worst": [0.1622, 0.1654],
+        "compactness_worst": [0.6656, 0.3682],
+        "concavity_worst": [0.7119, 0.2678],
+        "concave_points_worst": [0.2654, 0.1556],
+        "symmetry_worst": [0.4601, 0.3196],
+        "fractal_dimension_worst": [0.1189, 0.1151],
+        "diagnosis": ["M", "B"]
+    }
+    return pd.DataFrame(sample_data)
+
+sample_df = create_sample_test_data()
+sample_csv = sample_df.to_csv(index=False).encode("utf-8")
+
+st.download_button(
+    label="⬇ Download Sample Test CSV",
+    data=sample_csv,
+    file_name="sample_test_dataset.csv",
+    mime="text/csv"
+)
+
+st.divider()
+
+# -----------------------------
 # Model Configuration
-
+# -----------------------------
 
 MODEL_DIR = "models/saved_models"
 
@@ -49,9 +103,9 @@ selected_model_name = st.sidebar.selectbox(
     list(MODEL_FILES.keys())
 )
 
-
+# -----------------------------
 # Upload Dataset
-
+# -----------------------------
 
 uploaded_file = st.file_uploader("Upload CSV Test Dataset", type=["csv"])
 
@@ -62,9 +116,9 @@ if uploaded_file is not None:
     st.subheader("Dataset Preview")
     st.dataframe(df.head())
 
-   
+    # -----------------------------
     # Preprocessing
-   
+    # -----------------------------
 
     if "id" in df.columns:
         df.drop(columns=["id"], inplace=True)
@@ -85,14 +139,17 @@ if uploaded_file is not None:
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
-   
+    # -----------------------------
     # Load Selected Model
-   
+    # -----------------------------
 
     model_path = os.path.join(MODEL_DIR, MODEL_FILES[selected_model_name])
     model = joblib.load(model_path)
 
-    # Predict
+    # -----------------------------
+    # Prediction
+    # -----------------------------
+
     if selected_model_name in ["Logistic Regression", "KNN", "Naive Bayes"]:
         y_pred = model.predict(X_scaled)
         y_prob = model.predict_proba(X_scaled)[:, 1]
@@ -100,9 +157,9 @@ if uploaded_file is not None:
         y_pred = model.predict(X)
         y_prob = model.predict_proba(X)[:, 1]
 
-   
-    #  DOWNLOAD BUTTON (AT TOP)
-   
+    # -----------------------------
+    # Download Predictions
+    # -----------------------------
 
     results_df = X.copy()
     results_df["Actual"] = y
@@ -118,9 +175,9 @@ if uploaded_file is not None:
         mime="text/csv"
     )
 
-   
+    # -----------------------------
     # Evaluation Metrics
-   
+    # -----------------------------
 
     st.subheader(f"Evaluation Metrics – {selected_model_name}")
 
@@ -135,9 +192,9 @@ if uploaded_file is not None:
     col3.metric("AUC", round(roc_auc_score(y, y_prob), 4))
     col3.metric("MCC", round(matthews_corrcoef(y, y_pred), 4))
 
-   
+    # -----------------------------
     # Confusion Matrix
-   
+    # -----------------------------
 
     st.subheader("Confusion Matrix")
 
@@ -159,9 +216,9 @@ if uploaded_file is not None:
 
     st.pyplot(fig)
 
-   
+    # -----------------------------
     # ROC Curve
-    
+    # -----------------------------
 
     st.subheader("ROC Curve")
 
@@ -177,9 +234,9 @@ if uploaded_file is not None:
 
     st.pyplot(fig2)
 
-    
-    # Compare All Models (OPTION B)
- 
+    # -----------------------------
+    # Compare All Models
+    # -----------------------------
 
     st.subheader("Performance Comparison Across All Models")
 
@@ -209,7 +266,6 @@ if uploaded_file is not None:
 
         st.dataframe(comparison_df)
 
-        # AUC Bar Graph
         fig3, ax3 = plt.subplots()
         comparison_df["AUC"].plot(kind="bar", ax=ax3)
         ax3.set_ylabel("AUC Score")
@@ -218,7 +274,6 @@ if uploaded_file is not None:
 
         st.pyplot(fig3)
 
-        # Observations
         st.subheader("Observations")
         st.markdown("""
         - Ensemble models like Random Forest and XGBoost often show strong AUC performance.
