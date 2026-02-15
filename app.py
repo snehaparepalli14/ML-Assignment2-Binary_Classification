@@ -29,60 +29,6 @@ st.title("Breast Cancer Classification – ML Models")
 st.write("Upload test data, select a trained model, and evaluate performance.")
 
 # -----------------------------
-# Sample Test Dataset Download
-# -----------------------------
-
-st.subheader("Download Sample Test Dataset")
-
-def create_sample_test_data():
-    sample_data = {
-        "radius_mean": [17.99, 13.71],
-        "texture_mean": [10.38, 20.83],
-        "perimeter_mean": [122.8, 90.2],
-        "area_mean": [1001, 577.9],
-        "smoothness_mean": [0.1184, 0.1189],
-        "compactness_mean": [0.2776, 0.1645],
-        "concavity_mean": [0.3001, 0.09366],
-        "concave_points_mean": [0.1471, 0.05985],
-        "symmetry_mean": [0.2419, 0.2196],
-        "fractal_dimension_mean": [0.07871, 0.07451],
-        "radius_se": [1.095, 0.5835],
-        "texture_se": [0.9053, 1.377],
-        "perimeter_se": [8.589, 3.856],
-        "area_se": [153.4, 50.96],
-        "smoothness_se": [0.006399, 0.008805],
-        "compactness_se": [0.04904, 0.03029],
-        "concavity_se": [0.05373, 0.02488],
-        "concave_points_se": [0.01587, 0.01448],
-        "symmetry_se": [0.03003, 0.01486],
-        "fractal_dimension_se": [0.006193, 0.005412],
-        "radius_worst": [25.38, 17.06],
-        "texture_worst": [17.33, 28.14],
-        "perimeter_worst": [184.6, 110.6],
-        "area_worst": [2019, 897],
-        "smoothness_worst": [0.1622, 0.1654],
-        "compactness_worst": [0.6656, 0.3682],
-        "concavity_worst": [0.7119, 0.2678],
-        "concave_points_worst": [0.2654, 0.1556],
-        "symmetry_worst": [0.4601, 0.3196],
-        "fractal_dimension_worst": [0.1189, 0.1151],
-        "diagnosis": ["M", "B"]
-    }
-    return pd.DataFrame(sample_data)
-
-sample_df = create_sample_test_data()
-sample_csv = sample_df.to_csv(index=False).encode("utf-8")
-
-st.download_button(
-    label="⬇ Download Sample Test CSV",
-    data=sample_csv,
-    file_name="sample_test_dataset.csv",
-    mime="text/csv"
-)
-
-st.divider()
-
-# -----------------------------
 # Model Configuration
 # -----------------------------
 
@@ -116,9 +62,26 @@ if uploaded_file is not None:
     st.subheader("Dataset Preview")
     st.dataframe(df.head())
 
+    st.write("Total Uploaded Rows:", df.shape[0])
+
+    # -----------------------------
+    # Download Uploaded Test Dataset
+    # -----------------------------
+
+    uploaded_csv = df.to_csv(index=False).encode("utf-8")
+
+    st.download_button(
+        label="⬇ Download Uploaded Test Dataset",
+        data=uploaded_csv,
+        file_name="uploaded_test_dataset.csv",
+        mime="text/csv"
+    )
+
     # -----------------------------
     # Preprocessing
     # -----------------------------
+
+    df_original = df.copy()
 
     if "id" in df.columns:
         df.drop(columns=["id"], inplace=True)
@@ -150,21 +113,18 @@ if uploaded_file is not None:
     # Prediction
     # -----------------------------
 
-    if selected_model_name in ["Logistic Regression", "KNN", "Naive Bayes"]:
-        y_pred = model.predict(X_scaled)
-        y_prob = model.predict_proba(X_scaled)[:, 1]
-    else:
-        y_pred = model.predict(X)
-        y_prob = model.predict_proba(X)[:, 1]
+    y_pred = model.predict(X_scaled)
+    y_prob = model.predict_proba(X_scaled)[:, 1]
 
     # -----------------------------
     # Download Predictions
     # -----------------------------
 
-    results_df = X.copy()
-    results_df["Actual"] = y
+    results_df = df_original.copy()
     results_df["Predicted"] = y_pred
     results_df["Prediction_Probability"] = y_prob
+
+    st.write("Download Rows:", results_df.shape[0])
 
     csv = results_df.to_csv(index=False).encode("utf-8")
 
@@ -249,12 +209,8 @@ if uploaded_file is not None:
             model_path = os.path.join(MODEL_DIR, file)
             model = joblib.load(model_path)
 
-            if name in ["Logistic Regression", "KNN", "Naive Bayes"]:
-                preds = model.predict(X_scaled)
-                probs = model.predict_proba(X_scaled)[:, 1]
-            else:
-                preds = model.predict(X)
-                probs = model.predict_proba(X)[:, 1]
+            preds = model.predict(X_scaled)
+            probs = model.predict_proba(X_scaled)[:, 1]
 
             comparison_results[name] = {
                 "Accuracy": accuracy_score(y, preds),
@@ -274,12 +230,12 @@ if uploaded_file is not None:
 
         st.pyplot(fig3)
 
-        st.subheader("Observations")
         st.markdown("""
-        - Ensemble models like Random Forest and XGBoost often show strong AUC performance.
-        - Logistic Regression provides stable and interpretable results.
-        - Models with higher AUC have better class separation ability.
-        - In medical diagnosis, minimizing false negatives is critical.
+        **Observations:**
+        - Ensemble models generally demonstrate stronger AUC performance.
+        - Logistic Regression provides stable and interpretable baseline results.
+        - Higher AUC indicates better class separation ability.
+        - In medical diagnosis, minimizing false negatives (high recall) is critical.
         """)
 
 else:
